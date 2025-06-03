@@ -1,0 +1,31 @@
+{
+  "name": "mcp-token-api",
+  "module": "index.ts",
+  "version": "1.0.0",
+  "description": "MCP server for The Graph Token API",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun index.ts",
+    "build": "bun build --compile index.ts --outfile mcp-token-api",
+    "test": "bun test --coverage",
+    "clean": "bun i --force",
+    "lint": "bun run tsc --noEmit --skipLibCheck --pretty",
+    "inspector": "bunx @modelcontextprotocol/inspector"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@clickhouse/client": "^1.11.1",
+    "@clickhouse/client-web": "^1.11.1",
+    "commander": "^14.0.0",
+    "dotenv": "^16.5.0",
+    "fastmcp": "^2.2.1",
+    "tslog": "^4.9.3"
+  }
+}
