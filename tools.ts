@@ -7,7 +7,7 @@ export default [
         name: "list_databases",
         description: "List available databases",
         parameters: z.object({}), // Always needs a parameter (even if empty)
-        execute: async (args, { reportProgress }) => {
+        execute: async (_, { reportProgress }) => {
             return runSQLMCP(`SHOW DATABASES LIKE '%@%';`, reportProgress);
         },
     },

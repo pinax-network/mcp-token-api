@@ -32,11 +32,9 @@ resourceTemplates.map((resourceTemplate) => mcp.addResourceTemplate(resourceTemp
 //resources.map((resource) => mcp.addResource(resource));
 prompts.map((prompt) => mcp.addPrompt(prompt));
 
-export async function startMcpServer() {
-    await mcp.start({
-        transportType: "httpStream",
-        httpStream: {
-            port: config.port,
-        },
-    });
-}
+await mcp.start({
+    transportType: "httpStream",
+    httpStream: {
+        port: config.port,
+    },
+});
