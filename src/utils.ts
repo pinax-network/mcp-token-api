@@ -2,7 +2,7 @@
 // Allows for safe quoting of variables in SQL queries when not able to use query params
 import { formatQueryParams } from "@clickhouse/client-common";
 import { Progress, UserError } from "fastmcp";
-import { makeQuery } from "./clickhouse/makeQuery.js";
+import { makeQuery } from "../clickhouse/makeQuery.js";
 import { config } from "./config.js";
 
 export async function runSQLMCP(sql: string, reportProgress?: (progress: Progress) => Promise<void>): Promise<string> {

@@ -1,7 +1,7 @@
 import * as crypto from 'node:crypto';
 import client from "./client.js";
 
-import { logger } from "../logger.js";
+import { logger } from "../src/logger.js";
 
 import type { ResponseJSON } from "@clickhouse/client-web";
 import { isProgressRow, ProgressRow } from "@clickhouse/client";

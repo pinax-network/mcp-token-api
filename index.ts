@@ -1,10 +1,10 @@
 import { FastMCP } from "fastmcp";
 
-import { APP_VERSION, config, GIT_APP } from "./config.js";
-import { logger } from "./logger.js";
-import tools from "./tools.js";
-import prompts from "./prompts.js";
-import { resources, resourceTemplates } from "./resources.js";
+import { APP_VERSION, config, GIT_APP } from "./src/config.js";
+import { logger } from "./src/logger.js";
+import tools from "./src/tools.js";
+import prompts from "./src/prompts.js";
+import { resources, resourceTemplates } from "./src/resources.js";
 
 const mcp = new FastMCP({
     name: APP_VERSION,

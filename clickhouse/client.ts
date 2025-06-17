@@ -1,5 +1,5 @@
 import { createClient } from "@clickhouse/client-web";
-import { APP_NAME, config } from "../config.js";
+import { APP_NAME, config } from "../src/config.js";
 import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
 
 export const MAX_EXECUTION_TIME = 10;

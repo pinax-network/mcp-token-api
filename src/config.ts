@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { Option, program } from "commander";
 import { $ } from "bun";
 
-import pkg from "./package.json" with { type: "json" };
+import pkg from "../package.json" with { type: "json" };
 
 // defaults
 export const DEFAULT_PORT = "8080";
