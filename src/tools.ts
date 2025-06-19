@@ -8,7 +8,12 @@ export default [
         description: "List available databases",
         parameters: z.object({}), // Always needs a parameter (even if empty)
         execute: async (_, { reportProgress }) => {
-            return runSQLMCP(`SHOW DATABASES LIKE '%@%';`, reportProgress);
+            const query = `SELECT name, comment AS description
+                FROM system.databases
+                WHERE
+                    name LIKE '%@%';
+                `;
+            return runSQLMCP(query, reportProgress);
         },
     },
     {
@@ -19,10 +24,11 @@ export default [
         }),
         execute: async (args, { reportProgress }) => {
             // Filter out backfill tables as well (TODO: could be done with user permissions ?)
-            const query = `SHOW TABLES
-                FROM ${escapeSQL(args.database)}
+            const query = `SELECT name, comment AS description
+                FROM system.tables
                 WHERE
-                    name NOT LIKE 'backfill_%'
+                    database = ${escapeSQL(args.database).replaceAll('"', "'")}
+                    AND name NOT LIKE 'backfill_%'
                     AND name NOT LIKE '.inner_%'
                     AND name NOT LIKE '%_mv'
                     AND name NOT LIKE 'cursors';

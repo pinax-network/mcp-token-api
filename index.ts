@@ -29,7 +29,7 @@ mcp.on("disconnect", (event) => {
 // See https://spec.modelcontextprotocol.io/specification/2024-11-05/server/
 tools.map((tool) => mcp.addTool(tool));
 resourceTemplates.map((resourceTemplate) => mcp.addResourceTemplate(resourceTemplate));
-//resources.map((resource) => mcp.addResource(resource));
+resources.map((resource) => mcp.addResource(resource));
 prompts.map((prompt) => mcp.addPrompt(prompt));
 
 await mcp.start({
