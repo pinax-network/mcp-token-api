@@ -53,7 +53,7 @@ export default [
             query: z.string()
         }),
         execute: async (args, { reportProgress }) => {
-            return runSQLMCP(args.query, reportProgress);
+            return runSQLMCP(args.query, reportProgress, true);
         },
     },
 ] as Tool<undefined, z.ZodTypeAny>[];

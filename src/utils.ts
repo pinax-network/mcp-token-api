@@ -5,7 +5,11 @@ import { Progress, UserError } from "fastmcp";
 import { makeQuery } from "../clickhouse/makeQuery.js";
 import { config } from "./config.js";
 
-export async function runSQLMCP(sql: string, reportProgress?: (progress: Progress) => Promise<void>): Promise<string> {
+export async function runSQLMCP(
+    sql: string,
+    reportProgress?: (progress: Progress) => Promise<void>,
+    include_statistics: boolean = false
+): Promise<string> {
     let response;
     try {
         response = await makeQuery(sql, {}, { username: config.username, password: config.password }, reportProgress);
@@ -14,7 +18,7 @@ export async function runSQLMCP(sql: string, reportProgress?: (progress: Progres
     }
 
     if (response.data && response.data.length > 0) {
-        const json = JSON.stringify(response.data);
+        const json = JSON.stringify(include_statistics ? { data: response.data, statistics: response.statistics } : response.data);
 
         if (!json)
             throw new UserError(`Error parsing SQL query response to JSON`);
