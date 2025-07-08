@@ -7,15 +7,17 @@
 # =============================================
 
 # Networks to update
-NETWORKS=("arbitrum-one" "avalanche" "base" "bsc" "mainnet" "matic" "optimism" "unichain")
+NETWORKS=("arbitrum-one" "avalanche" "base" "bsc" "mainnet" "matic" "optimism" "unichain" "solana")
 
 # Database versions by category
-TOKENS_VERSION_CURRENT="evm-tokens@v1.14.0"
-TOKENS_VERSION_LEGACY="evm-tokens@v1.11.0:db_out"
+TOKENS_VERSION_CURRENT="evm-tokens@v1.16.0"
+TOKENS_VERSION_LEGACY="evm-tokens@v1.15.0"
 NFT_VERSION_CURRENT="evm-nft-tokens@v0.5.1"
 NFT_VERSION_LEGACY="evm-nft-tokens@v0.5.0"
 UNISWAP_VERSION="evm-uniswaps@v0.1.5"
 CONTRACTS_VERSION="evm-contracts@v0.3.1"
+SOLANA_DEX_VERSION="solana-dex@v0.1.0"
+SOLANA_TOKENS_VERSION="solana-tokens@v0.1.0"
 
 # ClickHouse connection parameters (can be overridden by environment variables or script arguments)
 CH_HOST="${CH_HOST:-${1:-localhost}}"
@@ -181,6 +183,10 @@ for network in "${NETWORKS[@]}"; do
             execute_database_alter "$network" "$TOKENS_VERSION_CURRENT" "Latest Unichain token database (v1.14.0) with native UNI integration, optimized swap routing, and protocol-specific tokenomics. Supports vertically-integrated DeFi analysis, native token research, and purpose-built blockchain performance studies."
             execute_database_alter "$network" "$UNISWAP_VERSION" "Unichain native DEX database with protocol-optimized trading, reduced MEV, enhanced liquidity provision, and native integration features. Enables purpose-built DEX blockchain research, MEV reduction analysis, and vertically-integrated protocol studies."
             ;;
+        "solana")
+            execute_database_alter "$network" "$SOLANA_DEX_VERSION" "Solana DEX database containing comprehensive swap data, liquidity events, and AMM protocol interactions across major Solana DEXs including Raydium. Supports high-throughput DeFi analysis, MEV research, and Solana ecosystem trading behavior studies."
+            execute_database_alter "$network" "$SOLANA_TOKENS_VERSION" "Solana tokens database with SPL token transfers, mint operations, and native SOL transactions. Enables Solana ecosystem analysis, token economics research, and high-performance blockchain activity studies."
+            ;;
     esac
 done
 
@@ -205,232 +211,290 @@ for network in "${NETWORKS[@]}"; do
     fi
     
     # =============================================
-    # Tokens Tables
+    # Solana Tables (Solana only)
     # =============================================
     
-    echo "Processing $TOKENS_VERSION_CURRENT tables..."
-    
-    # Core Balance Tables
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "balances" "Current account balances for all tokens and native tokens across ${network} network. Real-time snapshot of wallet holdings with efficient querying for portfolio analysis and wealth distribution research."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "balances_by_contract" "Aggregated token balances organized by contract address with holder statistics on ${network}. Optimized for token distribution analysis, whale tracking, and contract-specific holder demographic research."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "historical_balances" "Time-series balance data for historical portfolio reconstruction and wealth tracking on ${network}. Essential for backtesting strategies, analyzing historical whale movements, and conducting longitudinal wealth studies."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "historical_balances_by_contract" "Historical aggregated balances per contract with time-series holder distribution data on ${network}. Supports analysis of token adoption curves, holder concentration trends, and ecosystem maturity metrics."
-    
-    # ERC20 Token Tables
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_approvals" "ERC20 token approval events tracking spending permissions granted between addresses on ${network}. Critical for analyzing DeFi protocol interactions, security research, and unlimited approval risk assessment."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_balance_changes" "Atomic ERC20 balance change events with precise delta tracking for all token transfers on ${network}. Foundation for real-time balance calculations, MEV analysis, and high-frequency trading strategy development."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_metadata" "Current ERC20 token metadata including names, symbols, decimals, and total supply information on ${network}. Essential reference data for token identification, display formatting, and protocol integration."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_metadata_changes" "Historical ERC20 metadata modification events tracking symbol changes, supply adjustments, and other token parameter updates on ${network}. Important for detecting token migrations, rebranding events, and supply manipulation."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_metadata_initialize" "Initial ERC20 token deployment metadata capturing original token parameters and deployment contexts on ${network}. Provides genesis data for token lifecycle analysis and protocol archeology research."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_total_supply_changes" "ERC20 token total supply modification events including minting, burning, and inflationary mechanisms on ${network}. Essential for tokenomics analysis, inflation tracking, and monetary policy research."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_transfers" "Complete ERC20 token transfer events with sender, recipient, amount, and transaction context on ${network}. The primary dataset for token flow analysis, trading pattern detection, and economic activity measurement."
-    
-    # Native Token Tables
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_balance_changes" "Native token balance change events excluding gas fees for precise balance tracking on ${network}. Essential for native token flow analysis, staking rewards calculation, and non-fee related value transfer research."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_balance_changes_from_gas" "Native token balance changes specifically from gas fee payments and validator rewards on ${network}. Critical for analyzing network fee economics, validator revenue, and gas market dynamics research."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_transfers" "Direct native token transfer events between addresses excluding contract interactions and gas fees on ${network}. Core dataset for analyzing peer-to-peer native token movements and non-DeFi economic activity."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_transfers_from_fees" "Native token transfers resulting from transaction fee payments and validator rewards distribution on ${network}. Essential for understanding network economics, fee market dynamics, and validator income analysis."
-    
-    # Aggregated Transfer Tables
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "transfers" "Unified transfer events combining both ERC20 token and native token transfers with standardized schema on ${network}. Comprehensive dataset for cross-asset flow analysis and multi-token economic research."
-    
-    # Materialized Views for Performance
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_balances_by_contract" "Materialized view of current balances aggregated by contract with optimized query performance on ${network}. Pre-computed aggregations for fast dashboard loading and real-time analytics applications."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_balances" "Materialized view of current ERC20 token balances with efficient indexing for wallet and portfolio queries on ${network}. Optimized for high-frequency balance lookups and real-time DeFi position tracking."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_metadata_changes" "Materialized view of ERC20 metadata changes with optimized historical lookups and change tracking on ${network}. Pre-processed data for efficient token metadata evolution analysis and debugging."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_metadata_initialize" "Materialized view of initial ERC20 token deployments with enhanced indexing for token discovery and genesis analysis on ${network}. Optimized for new token detection and protocol research queries."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_transfers" "Materialized view of ERC20 transfers with optimized indexing for high-performance trading analysis and real-time transfer monitoring on ${network}. Enhanced with computed fields for analytics performance."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_historical_erc20_balances" "Materialized view of historical ERC20 balances with time-series optimization for backtesting and temporal analysis on ${network}. Pre-computed snapshots for efficient historical portfolio reconstruction."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_historical_native_balances" "Materialized view of historical native token balances with temporal indexing for efficient time-series queries on ${network}. Optimized for native token holder analysis and historical wealth distribution studies."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_native_balances" "Materialized view of current native token balances with optimized querying for wallet analysis and native token distribution research on ${network}. Pre-computed aggregations for fast native token economics dashboard loading."
-    
-    execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_native_transfers" "Materialized view of native token transfers with enhanced indexing for flow analysis and economic research on ${network}. Optimized for high-performance native token movement tracking and pattern detection."
+    if [ "$network" = "solana" ]; then
+        echo "Processing $SOLANA_DEX_VERSION tables..."
+        
+        # Core DEX Tables
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mints" "Solana token mint registry with program associations and decimal precision data. Foundation for SPL token identification, metadata resolution, and cross-program token compatibility analysis."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "swaps" "Unified Solana DEX swap events across all major protocols with standardized token amounts and pricing data. Primary dataset for cross-protocol trading analysis, arbitrage detection, and Solana DeFi ecosystem research."
+        
+        # Raydium AMM V4 Protocol Tables
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_deposit" "Raydium AMM V4 liquidity deposit events with LP token minting and pool contribution tracking. Essential for analyzing liquidity provider behavior, capital efficiency, and Raydium pool growth patterns."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_initialize" "Raydium AMM V4 pool initialization events with initial liquidity setup and market creation data. Critical for new pool discovery, initial price analysis, and Raydium ecosystem expansion research."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_swap" "Raydium AMM V4 swap execution events with detailed token exchange and price impact data. Core dataset for Raydium trading analysis, slippage research, and DEX efficiency studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_withdraw" "Raydium AMM V4 liquidity withdrawal events with LP token burning and asset redemption tracking. Important for analyzing liquidity provider exit patterns and pool sustainability metrics."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_withdraw_pnl" "Raydium AMM V4 profit and loss withdrawal events tracking LP rewards and fee distributions. Essential for liquidity provider profitability analysis and yield farming strategy research."
+        
+        echo "Processing $SOLANA_TOKENS_VERSION tables..."
+        
+        echo "Processing $SOLANA_TOKENS_VERSION tables..."
+        
+        # Core Token Tables
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "approves" "SPL token approval events granting delegate permissions with multisig authority support on Solana. Essential for analyzing token delegation patterns, DeFi protocol integrations, and multisig governance mechanisms."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balance_changes" "Atomic SPL token balance change events with precise delta tracking for all token movements on Solana. Foundation for real-time balance calculations, high-frequency trading analysis, and token flow pattern detection."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balances" "Current SPL token balances snapshot for all token holders with owner-mint mapping on Solana. Real-time view of token holdings optimized for portfolio analysis and wealth distribution research."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balances_by_mint" "Current SPL token balances organized by mint address with holder statistics on Solana. Optimized for token-centric analysis, holder distribution studies, and mint-specific economic research."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "blocks" "Solana block metadata with timestamp normalization and genesis-relative timing for chronological analysis. Essential reference data for temporal queries and block-based aggregations."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "initialize_accounts" "SPL token account initialization events tracking new token account creation and ownership assignment on Solana. Critical for analyzing token adoption patterns and account lifecycle management."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "initialize_mints" "SPL token mint initialization events capturing new token deployments with authority configuration on Solana. Foundation for token genesis analysis, authority tracking, and ecosystem growth studies."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "revokes" "SPL token delegation revocation events removing previously granted delegate permissions on Solana. Important for analyzing security practices, permission management, and token control patterns."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "transfers" "Complete SPL token transfer events with multisig authority support and comprehensive transaction context on Solana. Primary dataset for token flow analysis, trading pattern detection, and economic activity measurement."
+        
+        # Materialized Views for Performance
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "mv_balances" "Materialized view of current SPL token balances with optimized indexing for high-performance wallet queries on Solana. Pre-computed aggregations for fast portfolio tracking and real-time balance lookups."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "mv_balances_by_mint" "Materialized view of balances organized by mint with enhanced query performance for token-centric analysis on Solana. Optimized for mint-specific holder research and token distribution studies."
+    fi
     
     # =============================================
-    # NFT Tables
+    # EVM Networks Tables
     # =============================================
     
-    echo "Processing $NFT_VERSION_CURRENT tables..."
-    
-    # ERC1155 Multi-Token Standard Tables
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_approvals_for_all" "ERC1155 approval-for-all events granting operator permissions across entire token collections on ${network}. Essential for marketplace authorization analysis and bulk NFT operation security research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_balances" "Current ERC1155 token balances tracking fungible and semi-fungible token holdings per address on ${network}. Critical for gaming asset analysis, utility token tracking, and multi-edition NFT economics."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_metadata_by_contract" "ERC1155 contract-level metadata including collection information, base URIs, and contract specifications on ${network}. Foundation for multi-token collection analysis and gaming ecosystem research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_metadata_by_token" "Individual ERC1155 token metadata with attributes, media URLs, and token-specific properties on ${network}. Essential for gaming item analysis, utility token research, and semi-fungible asset valuation."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_transfers" "ERC1155 token transfer events supporting both single and batch transfers with quantity tracking on ${network}. Comprehensive dataset for gaming asset flows, utility token distribution, and multi-token economics."
-    
-    # ERC721 Non-Fungible Token Tables
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_approvals" "ERC721 individual token approval events for single NFT transfer authorization on ${network}. Critical for analyzing NFT marketplace mechanics, delegation patterns, and security research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_approvals_for_all" "ERC721 approval-for-all events granting operators permission over entire NFT collections on ${network}. Essential for bulk NFT operations, marketplace analysis, and security risk assessment."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_base_uri" "ERC721 base URI configuration events tracking metadata endpoint changes and collection hosting migrations on ${network}. Important for metadata availability analysis and collection maintenance research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_metadata_by_contract" "ERC721 collection-level metadata including contract names, symbols, and collection specifications on ${network}. Foundation for NFT collection analysis, brand research, and ecosystem mapping."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_metadata_by_token" "Individual ERC721 token metadata with attributes, images, and unique properties on ${network}. Core dataset for NFT valuation, rarity analysis, and cultural significance research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_owners" "Current ERC721 token ownership mapping with real-time holder information for all NFTs on ${network}. Essential for portfolio analysis, whale tracking, and ownership distribution research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_total_supply" "ERC721 collection total supply tracking with minting progress and collection size information on ${network}. Critical for scarcity analysis, mint tracking, and collection completion metrics."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_transfers" "Complete ERC721 transfer events including mints, sales, and transfers with full transaction context on ${network}. Primary dataset for NFT market analysis, price discovery, and ownership flow research."
-    
-    # Generic NFT Tables
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "nft_metadata" "Unified NFT metadata across all token standards with normalized attributes and media information on ${network}. Comprehensive reference for cross-standard NFT analysis and ecosystem research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "scrape_attempts" "Metadata scraping attempt logs tracking successful and failed metadata resolution efforts on ${network}. Essential for data quality analysis, metadata availability research, and infrastructure monitoring."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "scrape_attempts_by_contract" "Contract-level metadata scraping statistics with success rates and error patterns on ${network}. Critical for identifying problematic collections, metadata hosting issues, and collection health assessment."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "spam_scoring" "NFT spam detection scores and classification data for filtering low-quality or malicious collections on ${network}. Essential for marketplace curation, user protection, and ecosystem health analysis."
-    
-    # Seaport Marketplace Protocol Tables
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_considerations" "Seaport protocol consideration items specifying payment terms, royalties, and additional fees in NFT marketplace orders on ${network}. Critical for analyzing marketplace economics and royalty distribution."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_offers" "Seaport protocol offer items detailing NFTs and tokens being offered in marketplace transactions on ${network}. Essential for bid/ask analysis, liquidity research, and marketplace price discovery."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_order_cancelled" "Seaport order cancellation events tracking withdrawn marketplace listings and failed transactions on ${network}. Important for understanding marketplace behavior, user intent, and order book dynamics."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_order_fulfilled" "Seaport order fulfillment events representing completed NFT marketplace transactions with full execution details on ${network}. Core dataset for NFT sales analysis and marketplace volume research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_orders" "Complete Seaport marketplace order data including listings, offers, and complex multi-asset trades on ${network}. Comprehensive dataset for NFT marketplace analysis and trading pattern research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_orders_matched" "Seaport order matching events connecting buyers and sellers in marketplace transactions on ${network}. Essential for understanding marketplace efficiency, matching algorithms, and trade execution analysis."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_orders_ohlc" "Seaport order OHLC (Open, High, Low, Close) price data for NFT collections with time-series market data on ${network}. Critical for NFT price charting, technical analysis, and market trend research."
-    
-    # Materialized Views for Performance
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_erc1155_balance_from" "Materialized view of ERC1155 balances optimized for sender analysis with efficient balance tracking and historical reconstruction on ${network}. Pre-computed for high-performance gaming asset flow analysis."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_erc1155_balance_to" "Materialized view of ERC1155 balances optimized for recipient analysis with efficient balance aggregation and holder tracking on ${network}. Enhanced for multi-token portfolio analysis and holder research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_erc721_owners" "Materialized view of current ERC721 ownership with optimized indexing for fast portfolio queries and holder analysis on ${network}. Pre-computed aggregations for real-time NFT ownership tracking."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_considerations" "Materialized view of Seaport considerations with enhanced indexing for royalty analysis and fee structure research on ${network}. Optimized for marketplace economics and creator earnings analysis."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_offers" "Materialized view of Seaport offers with optimized querying for bid analysis and liquidity research on ${network}. Pre-processed data for efficient marketplace demand analysis and price discovery."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_orders" "Materialized view of Seaport orders with comprehensive indexing for high-performance marketplace analysis on ${network}. Enhanced with computed fields for trading volume and market activity research."
-    
-    execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_orders_ohlc" "Materialized view of Seaport OHLC data with time-series optimization for NFT price charting and technical analysis on ${network}. Pre-computed aggregations for fast market data visualization."
-    
-    # =============================================
-    # Uniswap Tables
-    # =============================================
-    
-    echo "Processing $UNISWAP_VERSION tables..."
-    
-    # Core Token Metadata Tables
-    execute_alter "$network" "$UNISWAP_VERSION" "erc20_metadata" "Current ERC20 token metadata for Uniswap-traded tokens including symbols, decimals, and total supply on ${network}. Essential reference data for DEX pair analysis and token identification."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "erc20_metadata_changes" "Historical ERC20 metadata changes for tokens traded on Uniswap with parameter modification tracking on ${network}. Important for detecting token migrations, rebranding, and supply changes affecting trading."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "erc20_metadata_initialize" "Initial ERC20 token deployment metadata for Uniswap ecosystem tokens with genesis parameters on ${network}. Foundation for token lifecycle analysis and new token listing research."
-    
-    # Core Pool and Swap Tables
-    execute_alter "$network" "$UNISWAP_VERSION" "pools" "Unified Uniswap pool registry across all protocol versions with liquidity metrics and fee tier information on ${network}. Central reference for DEX pool analysis and liquidity migration research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "swaps" "Complete Uniswap swap transactions across all protocol versions with unified schema for price impact and volume analysis on ${network}. Primary dataset for DEX trading research and MEV detection."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "ohlc_prices" "Open, High, Low, Close price data for Uniswap trading pairs with time-series market data for technical analysis on ${network}. Essential for price charting, volatility research, and trading strategy development."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "pool_activity_summary" "Aggregated pool activity metrics including volume, fees, and liquidity changes with time-based summaries on ${network}. Optimized for pool performance analysis and liquidity provider research."
-    
-    # Uniswap V2 Protocol Tables
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_burn" "Uniswap V2 liquidity removal events with LP token burning and asset withdrawal details on ${network}. Critical for analyzing liquidity provider behavior and impermanent loss calculations."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_mint" "Uniswap V2 liquidity provision events with LP token minting and initial deposit tracking on ${network}. Essential for analyzing liquidity addition patterns and LP token economics."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_pair_created" "Uniswap V2 pair creation events tracking new trading pair deployments with factory addresses on ${network}. Foundation for new pair discovery and ecosystem growth analysis."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_swap" "Uniswap V2 swap events with price impact, fee calculations, and routing information on ${network}. Core dataset for V2 trading analysis, arbitrage detection, and price discovery research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_sync" "Uniswap V2 price synchronization events maintaining constant product invariant with reserve updates on ${network}. Important for understanding V2 mechanics and liquidity state changes."
-    
-    # Uniswap V3 Protocol Tables
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_burn" "Uniswap V3 position burning events with concentrated liquidity removal and fee collection on ${network}. Essential for analyzing V3 liquidity strategies and position management."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_collect" "Uniswap V3 fee collection events from concentrated liquidity positions with earnings distribution on ${network}. Critical for LP profitability analysis and fee optimization research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_collect_protocol" "Uniswap V3 protocol fee collection events with governance revenue tracking and treasury analysis on ${network}. Important for protocol economics and fee switch activation research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_fee_amount_enabled" "Uniswap V3 fee tier activation events enabling new fee levels for trading pairs on ${network}. Essential for understanding fee tier adoption and pool fragmentation analysis."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_flash" "Uniswap V3 flash loan events with borrowing amounts and repayment tracking for arbitrage and liquidation analysis on ${network}. Critical for MEV research and flash loan utilization studies."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_increase_observation_cardinality_next" "Uniswap V3 oracle capacity expansion events increasing historical price data storage on ${network}. Important for oracle reliability analysis and TWAP calculation optimization."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_initialize" "Uniswap V3 pool initialization events setting initial price and activating trading on ${network}. Foundation for new V3 pool analysis and price discovery research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_mint" "Uniswap V3 concentrated liquidity position creation with tick range and amount details on ${network}. Essential for analyzing V3 LP strategies and concentrated liquidity effectiveness."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_owner_changed" "Uniswap V3 factory ownership transfer events with governance transition tracking on ${network}. Important for protocol governance analysis and decentralization research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_pool_created" "Uniswap V3 pool creation events with fee tier selection and initial parameters on ${network}. Critical for V3 ecosystem growth analysis and fee tier adoption research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_set_fee_protocol" "Uniswap V3 protocol fee configuration events with fee switch activation and percentage settings on ${network}. Essential for protocol economics and governance decision analysis."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_swap" "Uniswap V3 swap events with concentrated liquidity interaction and price impact analysis on ${network}. Primary dataset for V3 trading research and capital efficiency studies."
-    
-    # Uniswap V4 Protocol Tables
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_donate" "Uniswap V4 donation events with liquidity contributions and community incentive tracking on ${network}. Important for analyzing V4 community mechanisms and liquidity incentives."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_initialize" "Uniswap V4 pool initialization events with hook integration and custom pool parameters on ${network}. Foundation for V4 innovation research and hook utilization analysis."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_modify_liquidity" "Uniswap V4 liquidity modification events with hook execution and custom logic integration on ${network}. Essential for analyzing V4 advanced features and hook performance."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_protocol_fee_controller_update" "Uniswap V4 protocol fee controller configuration updates with dynamic fee management on ${network}. Critical for understanding V4 governance and adaptive fee mechanisms."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_protocol_fee_controller_updated" "Uniswap V4 protocol fee controller update confirmations with implementation tracking on ${network}. Important for V4 governance transition analysis and fee controller evolution."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_protocol_fee_updated" "Uniswap V4 protocol fee adjustment events with dynamic fee optimization and market adaptation on ${network}. Essential for analyzing V4 adaptive economics and fee optimization."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_swap" "Uniswap V4 swap events with hook integration, custom logic execution, and enhanced efficiency metrics on ${network}. Primary dataset for V4 innovation research and hook impact analysis."
-    
-    # Materialized Views for Performance
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_erc20_metadata_changes" "Materialized view of ERC20 metadata changes with optimized indexing for token evolution analysis on ${network}. Pre-processed data for efficient token migration and rebranding research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_erc20_metadata_initialize" "Materialized view of initial ERC20 deployments with enhanced indexing for new token discovery on ${network}. Optimized for token genesis analysis and Uniswap listing research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_ohlc_prices" "Materialized view of OHLC price data with time-series optimization for high-performance charting and technical analysis on ${network}. Pre-computed aggregations for fast price visualization."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_pool_activity_summary" "Materialized view of pool activity metrics with comprehensive performance indexing on ${network}. Enhanced aggregations for efficient pool comparison and liquidity provider analysis."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v2_pair_created" "Materialized view of V2 pair creation with optimized indexing for pair discovery and ecosystem growth analysis on ${network}. Pre-processed data for efficient V2 expansion research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v2_swap" "Materialized view of V2 swaps with enhanced indexing for high-performance trading analysis on ${network}. Optimized for V2 volume research and arbitrage opportunity detection."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v3_pool_created" "Materialized view of V3 pool creation with comprehensive indexing for fee tier analysis and growth tracking on ${network}. Enhanced for V3 adoption research and pool selection studies."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v3_swap" "Materialized view of V3 swaps with concentrated liquidity optimization and performance indexing on ${network}. Pre-computed metrics for efficient V3 trading analysis and capital efficiency research."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v4_initialize" "Materialized view of V4 initialization events with hook integration indexing and custom parameter tracking on ${network}. Optimized for V4 innovation research and hook adoption analysis."
-    
-    execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v4_swap" "Materialized view of V4 swaps with hook execution tracking and advanced feature analysis on ${network}. Enhanced for V4 performance research and custom logic impact studies."
+    if [ "$network" != "solana" ]; then
+        # =============================================
+        # Tokens Tables
+        # =============================================
+        
+        echo "Processing $TOKENS_VERSION_CURRENT tables..."
+        
+        # Core Balance Tables
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "balances" "Current account balances for all tokens and native tokens across ${network} network. Real-time snapshot of wallet holdings with efficient querying for portfolio analysis and wealth distribution research."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "balances_by_contract" "Aggregated token balances organized by contract address with holder statistics on ${network}. Optimized for token distribution analysis, whale tracking, and contract-specific holder demographic research."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "historical_balances" "Time-series balance data for historical portfolio reconstruction and wealth tracking on ${network}. Essential for backtesting strategies, analyzing historical whale movements, and conducting longitudinal wealth studies."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "historical_balances_by_contract" "Historical aggregated balances per contract with time-series holder distribution data on ${network}. Supports analysis of token adoption curves, holder concentration trends, and ecosystem maturity metrics."
+        
+        # ERC20 Token Tables
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_approvals" "ERC20 token approval events tracking spending permissions granted between addresses on ${network}. Critical for analyzing DeFi protocol interactions, security research, and unlimited approval risk assessment."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_balance_changes" "Atomic ERC20 balance change events with precise delta tracking for all token transfers on ${network}. Foundation for real-time balance calculations, MEV analysis, and high-frequency trading strategy development."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_metadata" "Current ERC20 token metadata including names, symbols, decimals, and total supply information on ${network}. Essential reference data for token identification, display formatting, and protocol integration."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_metadata_changes" "Historical ERC20 metadata modification events tracking symbol changes, supply adjustments, and other token parameter updates on ${network}. Important for detecting token migrations, rebranding events, and supply manipulation."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_metadata_initialize" "Initial ERC20 token deployment metadata capturing original token parameters and deployment contexts on ${network}. Provides genesis data for token lifecycle analysis and protocol archeology research."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_total_supply_changes" "ERC20 token total supply modification events including minting, burning, and inflationary mechanisms on ${network}. Essential for tokenomics analysis, inflation tracking, and monetary policy research."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "erc20_transfers" "Complete ERC20 token transfer events with sender, recipient, amount, and transaction context on ${network}. The primary dataset for token flow analysis, trading pattern detection, and economic activity measurement."
+        
+        # Native Token Tables
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_balance_changes" "Native token balance change events excluding gas fees for precise balance tracking on ${network}. Essential for native token flow analysis, staking rewards calculation, and non-fee related value transfer research."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_balance_changes_from_gas" "Native token balance changes specifically from gas fee payments and validator rewards on ${network}. Critical for analyzing network fee economics, validator revenue, and gas market dynamics research."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_transfers" "Direct native token transfer events between addresses excluding contract interactions and gas fees on ${network}. Core dataset for analyzing peer-to-peer native token movements and non-DeFi economic activity."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "native_transfers_from_fees" "Native token transfers resulting from transaction fee payments and validator rewards distribution on ${network}. Essential for understanding network economics, fee market dynamics, and validator income analysis."
+        
+        # Aggregated Transfer Tables
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "transfers" "Unified transfer events combining both ERC20 token and native token transfers with standardized schema on ${network}. Comprehensive dataset for cross-asset flow analysis and multi-token economic research."
+        
+        # Materialized Views for Performance
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_balances_by_contract" "Materialized view of current balances aggregated by contract with optimized query performance on ${network}. Pre-computed aggregations for fast dashboard loading and real-time analytics applications."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_balances" "Materialized view of current ERC20 token balances with efficient indexing for wallet and portfolio queries on ${network}. Optimized for high-frequency balance lookups and real-time DeFi position tracking."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_metadata_changes" "Materialized view of ERC20 metadata changes with optimized historical lookups and change tracking on ${network}. Pre-processed data for efficient token metadata evolution analysis and debugging."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_metadata_initialize" "Materialized view of initial ERC20 token deployments with enhanced indexing for token discovery and genesis analysis on ${network}. Optimized for new token detection and protocol research queries."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_erc20_transfers" "Materialized view of ERC20 transfers with optimized indexing for high-performance trading analysis and real-time transfer monitoring on ${network}. Enhanced with computed fields for analytics performance."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_historical_erc20_balances" "Materialized view of historical ERC20 balances with time-series optimization for backtesting and temporal analysis on ${network}. Pre-computed snapshots for efficient historical portfolio reconstruction."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_historical_native_balances" "Materialized view of historical native token balances with temporal indexing for efficient time-series queries on ${network}. Optimized for native token holder analysis and historical wealth distribution studies."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_native_balances" "Materialized view of current native token balances with optimized querying for wallet analysis and native token distribution research on ${network}. Pre-computed aggregations for fast native token economics dashboard loading."
+        
+        execute_alter "$network" "$TOKENS_VERSION_CURRENT" "mv_native_transfers" "Materialized view of native token transfers with enhanced indexing for flow analysis and economic research on ${network}. Optimized for high-performance native token movement tracking and pattern detection."
+        
+        # =============================================
+        # NFT Tables
+        # =============================================
+        
+        echo "Processing $NFT_VERSION_CURRENT tables..."
+        
+        # ERC1155 Multi-Token Standard Tables
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_approvals_for_all" "ERC1155 approval-for-all events granting operator permissions across entire token collections on ${network}. Essential for marketplace authorization analysis and bulk NFT operation security research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_balances" "Current ERC1155 token balances tracking fungible and semi-fungible token holdings per address on ${network}. Critical for gaming asset analysis, utility token tracking, and multi-edition NFT economics."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_metadata_by_contract" "ERC1155 contract-level metadata including collection information, base URIs, and contract specifications on ${network}. Foundation for multi-token collection analysis and gaming ecosystem research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_metadata_by_token" "Individual ERC1155 token metadata with attributes, media URLs, and token-specific properties on ${network}. Essential for gaming item analysis, utility token research, and semi-fungible asset valuation."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc1155_transfers" "ERC1155 token transfer events supporting both single and batch transfers with quantity tracking on ${network}. Comprehensive dataset for gaming asset flows, utility token distribution, and multi-token economics."
+        
+        # ERC721 Non-Fungible Token Tables
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_approvals" "ERC721 individual token approval events for single NFT transfer authorization on ${network}. Critical for analyzing NFT marketplace mechanics, delegation patterns, and security research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_approvals_for_all" "ERC721 approval-for-all events granting operators permission over entire NFT collections on ${network}. Essential for bulk NFT operations, marketplace analysis, and security risk assessment."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_base_uri" "ERC721 base URI configuration events tracking metadata endpoint changes and collection hosting migrations on ${network}. Important for metadata availability analysis and collection maintenance research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_metadata_by_contract" "ERC721 collection-level metadata including contract names, symbols, and collection specifications on ${network}. Foundation for NFT collection analysis, brand research, and ecosystem mapping."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_metadata_by_token" "Individual ERC721 token metadata with attributes, images, and unique properties on ${network}. Core dataset for NFT valuation, rarity analysis, and cultural significance research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_owners" "Current ERC721 token ownership mapping with real-time holder information for all NFTs on ${network}. Essential for portfolio analysis, whale tracking, and ownership distribution research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_total_supply" "ERC721 collection total supply tracking with minting progress and collection size information on ${network}. Critical for scarcity analysis, mint tracking, and collection completion metrics."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "erc721_transfers" "Complete ERC721 transfer events including mints, sales, and transfers with full transaction context on ${network}. Primary dataset for NFT market analysis, price discovery, and ownership flow research."
+        
+        # Generic NFT Tables
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "nft_metadata" "Unified NFT metadata across all token standards with normalized attributes and media information on ${network}. Comprehensive reference for cross-standard NFT analysis and ecosystem research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "scrape_attempts" "Metadata scraping attempt logs tracking successful and failed metadata resolution efforts on ${network}. Essential for data quality analysis, metadata availability research, and infrastructure monitoring."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "scrape_attempts_by_contract" "Contract-level metadata scraping statistics with success rates and error patterns on ${network}. Critical for identifying problematic collections, metadata hosting issues, and collection health assessment."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "spam_scoring" "NFT spam detection scores and classification data for filtering low-quality or malicious collections on ${network}. Essential for marketplace curation, user protection, and ecosystem health analysis."
+        
+        # Seaport Marketplace Protocol Tables
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_considerations" "Seaport protocol consideration items specifying payment terms, royalties, and additional fees in NFT marketplace orders on ${network}. Critical for analyzing marketplace economics and royalty distribution."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_offers" "Seaport protocol offer items detailing NFTs and tokens being offered in marketplace transactions on ${network}. Essential for bid/ask analysis, liquidity research, and marketplace price discovery."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_order_cancelled" "Seaport order cancellation events tracking withdrawn marketplace listings and failed transactions on ${network}. Important for understanding marketplace behavior, user intent, and order book dynamics."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_order_fulfilled" "Seaport order fulfillment events representing completed NFT marketplace transactions with full execution details on ${network}. Core dataset for NFT sales analysis and marketplace volume research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_orders" "Complete Seaport marketplace order data including listings, offers, and complex multi-asset trades on ${network}. Comprehensive dataset for NFT marketplace analysis and trading pattern research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_orders_matched" "Seaport order matching events connecting buyers and sellers in marketplace transactions on ${network}. Essential for understanding marketplace efficiency, matching algorithms, and trade execution analysis."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "seaport_orders_ohlc" "Seaport order OHLC (Open, High, Low, Close) price data for NFT collections with time-series market data on ${network}. Critical for NFT price charting, technical analysis, and market trend research."
+        
+        # Materialized Views for Performance
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_erc1155_balance_from" "Materialized view of ERC1155 balances optimized for sender analysis with efficient balance tracking and historical reconstruction on ${network}. Pre-computed for high-performance gaming asset flow analysis."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_erc1155_balance_to" "Materialized view of ERC1155 balances optimized for recipient analysis with efficient balance aggregation and holder tracking on ${network}. Enhanced for multi-token portfolio analysis and holder research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_erc721_owners" "Materialized view of current ERC721 ownership with optimized indexing for fast portfolio queries and holder analysis on ${network}. Pre-computed aggregations for real-time NFT ownership tracking."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_considerations" "Materialized view of Seaport considerations with enhanced indexing for royalty analysis and fee structure research on ${network}. Optimized for marketplace economics and creator earnings analysis."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_offers" "Materialized view of Seaport offers with optimized querying for bid analysis and liquidity research on ${network}. Pre-processed data for efficient marketplace demand analysis and price discovery."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_orders" "Materialized view of Seaport orders with comprehensive indexing for high-performance marketplace analysis on ${network}. Enhanced with computed fields for trading volume and market activity research."
+        
+        execute_alter "$network" "$NFT_VERSION_CURRENT" "mv_seaport_orders_ohlc" "Materialized view of Seaport OHLC data with time-series optimization for NFT price charting and technical analysis on ${network}. Pre-computed aggregations for fast market data visualization."
+        
+        # =============================================
+        # Uniswap Tables
+        # =============================================
+        
+        echo "Processing $UNISWAP_VERSION tables..."
+        
+        # Core Token Metadata Tables
+        execute_alter "$network" "$UNISWAP_VERSION" "erc20_metadata" "Current ERC20 token metadata for Uniswap-traded tokens including symbols, decimals, and total supply on ${network}. Essential reference data for DEX pair analysis and token identification."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "erc20_metadata_changes" "Historical ERC20 metadata changes for tokens traded on Uniswap with parameter modification tracking on ${network}. Important for detecting token migrations, rebranding, and supply changes affecting trading."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "erc20_metadata_initialize" "Initial ERC20 token deployment metadata for Uniswap ecosystem tokens with genesis parameters on ${network}. Foundation for token lifecycle analysis and new token listing research."
+        
+        # Core Pool and Swap Tables
+        execute_alter "$network" "$UNISWAP_VERSION" "pools" "Unified Uniswap pool registry across all protocol versions with liquidity metrics and fee tier information on ${network}. Central reference for DEX pool analysis and liquidity migration research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "swaps" "Complete Uniswap swap transactions across all protocol versions with unified schema for price impact and volume analysis on ${network}. Primary dataset for DEX trading research and MEV detection."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "ohlc_prices" "Open, High, Low, Close price data for Uniswap trading pairs with time-series market data for technical analysis on ${network}. Essential for price charting, volatility research, and trading strategy development."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "pool_activity_summary" "Aggregated pool activity metrics including volume, fees, and liquidity changes with time-based summaries on ${network}. Optimized for pool performance analysis and liquidity provider research."
+        
+        # Uniswap V2 Protocol Tables
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_burn" "Uniswap V2 liquidity removal events with LP token burning and asset withdrawal details on ${network}. Critical for analyzing liquidity provider behavior and impermanent loss calculations."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_mint" "Uniswap V2 liquidity provision events with LP token minting and initial deposit tracking on ${network}. Essential for analyzing liquidity addition patterns and LP token economics."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_pair_created" "Uniswap V2 pair creation events tracking new trading pair deployments with factory addresses on ${network}. Foundation for new pair discovery and ecosystem growth analysis."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_swap" "Uniswap V2 swap events with price impact, fee calculations, and routing information on ${network}. Core dataset for V2 trading analysis, arbitrage detection, and price discovery research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v2_sync" "Uniswap V2 price synchronization events maintaining constant product invariant with reserve updates on ${network}. Important for understanding V2 mechanics and liquidity state changes."
+        
+        # Uniswap V3 Protocol Tables
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_burn" "Uniswap V3 position burning events with concentrated liquidity removal and fee collection on ${network}. Essential for analyzing V3 liquidity strategies and position management."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_collect" "Uniswap V3 fee collection events from concentrated liquidity positions with earnings distribution on ${network}. Critical for LP profitability analysis and fee optimization research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_collect_protocol" "Uniswap V3 protocol fee collection events with governance revenue tracking and treasury analysis on ${network}. Important for protocol economics and fee switch activation research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_fee_amount_enabled" "Uniswap V3 fee tier activation events enabling new fee levels for trading pairs on ${network}. Essential for understanding fee tier adoption and pool fragmentation analysis."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_flash" "Uniswap V3 flash loan events with borrowing amounts and repayment tracking for arbitrage and liquidation analysis on ${network}. Critical for MEV research and flash loan utilization studies."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_increase_observation_cardinality_next" "Uniswap V3 oracle capacity expansion events increasing historical price data storage on ${network}. Important for oracle reliability analysis and TWAP calculation optimization."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_initialize" "Uniswap V3 pool initialization events setting initial price and activating trading on ${network}. Foundation for new V3 pool analysis and price discovery research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_mint" "Uniswap V3 concentrated liquidity position creation with tick range and amount details on ${network}. Essential for analyzing V3 LP strategies and concentrated liquidity effectiveness."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_owner_changed" "Uniswap V3 factory ownership transfer events with governance transition tracking on ${network}. Important for protocol governance analysis and decentralization research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_pool_created" "Uniswap V3 pool creation events with fee tier selection and initial parameters on ${network}. Critical for V3 ecosystem growth analysis and fee tier adoption research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_set_fee_protocol" "Uniswap V3 protocol fee configuration events with fee switch activation and percentage settings on ${network}. Essential for protocol economics and governance decision analysis."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v3_swap" "Uniswap V3 swap events with concentrated liquidity interaction and price impact analysis on ${network}. Primary dataset for V3 trading research and capital efficiency studies."
+        
+        # Uniswap V4 Protocol Tables
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_donate" "Uniswap V4 donation events with liquidity contributions and community incentive tracking on ${network}. Important for analyzing V4 community mechanisms and liquidity incentives."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_initialize" "Uniswap V4 pool initialization events with hook integration and custom pool parameters on ${network}. Foundation for V4 innovation research and hook utilization analysis."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_modify_liquidity" "Uniswap V4 liquidity modification events with hook execution and custom logic integration on ${network}. Essential for analyzing V4 advanced features and hook performance."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_protocol_fee_controller_update" "Uniswap V4 protocol fee controller configuration updates with dynamic fee management on ${network}. Critical for understanding V4 governance and adaptive fee mechanisms."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_protocol_fee_controller_updated" "Uniswap V4 protocol fee controller update confirmations with implementation tracking on ${network}. Important for V4 governance transition analysis and fee controller evolution."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_protocol_fee_updated" "Uniswap V4 protocol fee adjustment events with dynamic fee optimization and market adaptation on ${network}. Essential for analyzing V4 adaptive economics and fee optimization."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "uniswap_v4_swap" "Uniswap V4 swap events with hook integration, custom logic execution, and enhanced efficiency metrics on ${network}. Primary dataset for V4 innovation research and hook impact analysis."
+        
+        # Materialized Views for Performance
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_erc20_metadata_changes" "Materialized view of ERC20 metadata changes with optimized indexing for token evolution analysis on ${network}. Pre-processed data for efficient token migration and rebranding research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_erc20_metadata_initialize" "Materialized view of initial ERC20 deployments with enhanced indexing for new token discovery on ${network}. Optimized for token genesis analysis and Uniswap listing research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_ohlc_prices" "Materialized view of OHLC price data with time-series optimization for high-performance charting and technical analysis on ${network}. Pre-computed aggregations for fast price visualization."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_pool_activity_summary" "Materialized view of pool activity metrics with comprehensive performance indexing on ${network}. Enhanced aggregations for efficient pool comparison and liquidity provider analysis."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v2_pair_created" "Materialized view of V2 pair creation with optimized indexing for pair discovery and ecosystem growth analysis on ${network}. Pre-processed data for efficient V2 expansion research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v2_swap" "Materialized view of V2 swaps with enhanced indexing for high-performance trading analysis on ${network}. Optimized for V2 volume research and arbitrage opportunity detection."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v3_pool_created" "Materialized view of V3 pool creation with comprehensive indexing for fee tier analysis and growth tracking on ${network}. Enhanced for V3 adoption research and pool selection studies."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v3_swap" "Materialized view of V3 swaps with concentrated liquidity optimization and performance indexing on ${network}. Pre-computed metrics for efficient V3 trading analysis and capital efficiency research."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v4_initialize" "Materialized view of V4 initialization events with hook integration indexing and custom parameter tracking on ${network}. Optimized for V4 innovation research and hook adoption analysis."
+        
+        execute_alter "$network" "$UNISWAP_VERSION" "mv_uniswap_v4_swap" "Materialized view of V4 swaps with hook execution tracking and advanced feature analysis on ${network}. Enhanced for V4 performance research and custom logic impact studies."
+    fi
     
 done
 
