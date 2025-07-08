@@ -6,12 +6,39 @@
 # CONFIGURATION VARIABLES
 # =============================================
 
-# Networks to update
-NETWORKS=("arbitrum-one" "avalanche" "base" "bsc" "mainnet" "matic" "optimism" "unichain" "solana")
+# All available networks
+ALL_NETWORKS=("arbitrum-one" "avalanche" "base" "bsc" "mainnet" "matic" "optimism" "unichain" "solana")
+
+# Parse command line arguments for network selection
+if [ $# -eq 0 ]; then
+    # Default to all networks if no arguments provided
+    NETWORKS=("${ALL_NETWORKS[@]}")
+    connection_args=()
+else
+    # Determine which networks to process
+    NETWORKS=()
+    connection_args=()
+    for arg in "$@"; do
+        if [[ " ${ALL_NETWORKS[*]} " =~ " ${arg} " ]]; then
+            NETWORKS+=("$arg")
+        elif [ "$arg" = "all" ]; then
+            NETWORKS=("${ALL_NETWORKS[@]}")
+        else
+            # Assume remaining arguments are connection parameters
+            connection_args+=("$arg")
+        fi
+    done
+
+    # If no valid networks specified but arguments were provided, use all networks
+    # This handles cases like "./script.sh localhost 9000" (connection params only)
+    if [ ${#NETWORKS[@]} -eq 0 ] && [ ${#connection_args[@]} -gt 0 ]; then
+        NETWORKS=("${ALL_NETWORKS[@]}")
+    fi
+fi
 
 # Database versions by category
-TOKENS_VERSION_CURRENT="evm-tokens@v1.16.0"
-TOKENS_VERSION_LEGACY="evm-tokens@v1.15.0"
+TOKENS_VERSION_CURRENT="evm-tokens@v1.14.0"
+TOKENS_VERSION_LEGACY="evm-tokens@v1.11.0:db_out"
 NFT_VERSION_CURRENT="evm-nft-tokens@v0.5.1"
 NFT_VERSION_LEGACY="evm-nft-tokens@v0.5.0"
 UNISWAP_VERSION="evm-uniswaps@v0.1.5"
@@ -19,11 +46,11 @@ CONTRACTS_VERSION="evm-contracts@v0.3.1"
 SOLANA_DEX_VERSION="solana-dex@v0.1.0"
 SOLANA_TOKENS_VERSION="solana-tokens@v0.1.0"
 
-# ClickHouse connection parameters (can be overridden by environment variables or script arguments)
-CH_HOST="${CH_HOST:-${1:-localhost}}"
-CH_PORT="${CH_PORT:-${2:-9000}}"
-CH_USER="${CH_USER:-${3:-default}}"
-CH_PASSWORD="${CH_PASSWORD:-${4:-default}}"
+# ClickHouse connection parameters (can be overridden by environment variables or remaining script arguments)
+CH_HOST="${CH_HOST:-${connection_args[0]:-localhost}}"
+CH_PORT="${CH_PORT:-${connection_args[1]:-9000}}"
+CH_USER="${CH_USER:-${connection_args[2]:-default}}"
+CH_PASSWORD="${CH_PASSWORD:-${connection_args[3]:-default}}"
 
 # Build ClickHouse client command
 CH_CLIENT="clickhouse client --host=${CH_HOST} --port=${CH_PORT} --user=${CH_USER} --password=${CH_PASSWORD}"
@@ -116,7 +143,7 @@ execute_database_alter() {
 }
 
 echo "Starting multi-network database and table comments update..."
-echo "Networks: ${NETWORKS[*]}"
+echo "Selected networks: ${NETWORKS[*]}"
 echo "========================================"
 
 # =============================================
@@ -235,31 +262,8 @@ for network in "${NETWORKS[@]}"; do
         
         echo "Processing $SOLANA_TOKENS_VERSION tables..."
         
-        echo "Processing $SOLANA_TOKENS_VERSION tables..."
-        
-        # Core Token Tables
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "approves" "SPL token approval events granting delegate permissions with multisig authority support on Solana. Essential for analyzing token delegation patterns, DeFi protocol integrations, and multisig governance mechanisms."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balance_changes" "Atomic SPL token balance change events with precise delta tracking for all token movements on Solana. Foundation for real-time balance calculations, high-frequency trading analysis, and token flow pattern detection."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balances" "Current SPL token balances snapshot for all token holders with owner-mint mapping on Solana. Real-time view of token holdings optimized for portfolio analysis and wealth distribution research."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balances_by_mint" "Current SPL token balances organized by mint address with holder statistics on Solana. Optimized for token-centric analysis, holder distribution studies, and mint-specific economic research."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "blocks" "Solana block metadata with timestamp normalization and genesis-relative timing for chronological analysis. Essential reference data for temporal queries and block-based aggregations."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "initialize_accounts" "SPL token account initialization events tracking new token account creation and ownership assignment on Solana. Critical for analyzing token adoption patterns and account lifecycle management."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "initialize_mints" "SPL token mint initialization events capturing new token deployments with authority configuration on Solana. Foundation for token genesis analysis, authority tracking, and ecosystem growth studies."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "revokes" "SPL token delegation revocation events removing previously granted delegate permissions on Solana. Important for analyzing security practices, permission management, and token control patterns."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "transfers" "Complete SPL token transfer events with multisig authority support and comprehensive transaction context on Solana. Primary dataset for token flow analysis, trading pattern detection, and economic activity measurement."
-        
-        # Materialized Views for Performance
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "mv_balances" "Materialized view of current SPL token balances with optimized indexing for high-performance wallet queries on Solana. Pre-computed aggregations for fast portfolio tracking and real-time balance lookups."
-        
-        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "mv_balances_by_mint" "Materialized view of balances organized by mint with enhanced query performance for token-centric analysis on Solana. Optimized for mint-specific holder research and token distribution studies."
+        # Note: Solana tokens tables would be added here when they become available
+        # execute_alter "$network" "$SOLANA_TOKENS_VERSION" "table_name" "Description..."
     fi
     
     # =============================================
