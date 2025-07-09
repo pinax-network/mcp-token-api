@@ -43,7 +43,7 @@ NFT_VERSION_CURRENT="evm-nft-tokens@v0.5.1"
 NFT_VERSION_LEGACY="evm-nft-tokens@v0.5.0"
 UNISWAP_VERSION="evm-uniswaps@v0.1.5"
 CONTRACTS_VERSION="evm-contracts@v0.3.1"
-SOLANA_DEX_VERSION="solana-dex@v0.1.0"
+SOLANA_DEX_VERSION="solana-dex@v0.2.0"
 SOLANA_TOKENS_VERSION="solana-tokens@v0.1.0"
 
 # ClickHouse connection parameters (can be overridden by environment variables or remaining script arguments)
@@ -244,26 +244,46 @@ for network in "${NETWORKS[@]}"; do
     if [ "$network" = "solana" ]; then
         echo "Processing $SOLANA_DEX_VERSION tables..."
         
-        # Core DEX Tables
+        # Core Tables
         execute_alter "$network" "$SOLANA_DEX_VERSION" "blocks" "Solana block metadata with timestamp and hash information for chronological analysis and block-based queries. Essential reference data for temporal aggregations and cross-table block correlations in DEX analysis."
-
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "mints" "Solana token mint registry with program associations and decimal precision data. Foundation for SPL token identification, metadata resolution, and cross-program token compatibility analysis."
         
         execute_alter "$network" "$SOLANA_DEX_VERSION" "swaps" "Unified Solana DEX swap events across all major protocols with standardized token amounts and pricing data. Primary dataset for cross-protocol trading analysis, arbitrage detection, and Solana DeFi ecosystem research."
         
-        # Raydium AMM V4 Protocol Tables
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_deposit" "Raydium AMM V4 liquidity deposit events with LP token minting and pool contribution tracking. Essential for analyzing liquidity provider behavior, capital efficiency, and Raydium pool growth patterns."
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "ohlc_prices" "Open, High, Low, Close price data for Solana DEX trading pairs with time-series market data for technical analysis. Essential for price charting, volatility research, and trading strategy development across Solana protocols."
         
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_initialize" "Raydium AMM V4 pool initialization events with initial liquidity setup and market creation data. Critical for new pool discovery, initial price analysis, and Raydium ecosystem expansion research."
+        # Jupiter DEX Aggregator Tables
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "jupiter_swap" "Jupiter DEX aggregator swap events with multi-route optimization and cross-AMM execution data. Critical for analyzing DEX aggregation efficiency, optimal routing strategies, and Jupiter ecosystem trading patterns."
         
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_swap" "Raydium AMM V4 swap execution events with detailed token exchange and price impact data. Core dataset for Raydium trading analysis, slippage research, and DEX efficiency studies."
+        # Pump.fun Protocol Tables
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "pumpfun_buy" "Pump.fun token purchase events with bonding curve mechanics and fee distribution tracking. Essential for analyzing meme token launches, bonding curve trading dynamics, and pump.fun ecosystem growth."
         
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_withdraw" "Raydium AMM V4 liquidity withdrawal events with LP token burning and asset redemption tracking. Important for analyzing liquidity provider exit patterns and pool sustainability metrics."
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "pumpfun_sell" "Pump.fun token sale events with bonding curve mechanics and liquidity extraction patterns. Important for analyzing token exit strategies, bonding curve sustainability, and pump.fun trading behavior."
         
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_withdraw_pnl" "Raydium AMM V4 profit and loss withdrawal events tracking LP rewards and fee distributions. Essential for liquidity provider profitability analysis and yield farming strategy research."
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "pumpfun_amm_buy" "Pump.fun AMM-based token purchases with enhanced liquidity pool interactions and fee structures. Critical for analyzing transition from bonding curve to AMM trading and liquidity migration patterns."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "pumpfun_amm_sell" "Pump.fun AMM-based token sales with liquidity pool dynamics and advanced fee distribution mechanisms. Essential for analyzing AMM trading efficiency and pump.fun protocol evolution."
+        
+        # Raydium AMM V4 Protocol Tables (Enhanced)
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_swap_base_in" "Raydium AMM V4 base-token-in swap events with detailed market integration and vault interaction data. Core dataset for analyzing base token trading patterns, market coupling effects, and Raydium-OpenBook integration."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_swap_base_out" "Raydium AMM V4 base-token-out swap events with comprehensive vault state and market interaction tracking. Essential for analyzing quote token trading patterns, liquidity utilization, and AMM efficiency metrics."
         
         # Materialized Views for Performance
-        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_raydium_amm_v4_swap" "Materialized view of Raydium AMM V4 swaps normalized to unified swap format with standardized token ordering and pricing. Pre-computed aggregations for efficient cross-protocol DEX analysis and trading pattern research."
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_jupiter_swap" "Materialized view of Jupiter swaps with optimized indexing for high-performance DEX aggregation analysis. Pre-computed aggregations for efficient multi-protocol trading research and route optimization studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_pumpfun_buy" "Materialized view of Pump.fun purchases with enhanced indexing for bonding curve analysis and meme token research. Optimized for high-frequency launch tracking and trading pattern detection."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_pumpfun_sell" "Materialized view of Pump.fun sales with optimized querying for exit pattern analysis and bonding curve sustainability research. Pre-processed data for efficient token lifecycle studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_pumpfun_amm_buy" "Materialized view of Pump.fun AMM purchases with comprehensive indexing for liquidity transition analysis. Enhanced for AMM migration research and protocol evolution studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_pumpfun_amm_sell" "Materialized view of Pump.fun AMM sales with optimized performance for liquidity analysis and fee distribution research. Pre-computed metrics for efficient AMM trading behavior studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_raydium_amm_v4_swap_base_in" "Materialized view of Raydium base-in swaps with enhanced indexing for market integration analysis. Optimized for high-performance base token trading research and AMM-DEX coupling studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_raydium_amm_v4_swap_base_out" "Materialized view of Raydium base-out swaps with comprehensive performance optimization for quote token analysis. Pre-computed aggregations for efficient liquidity research and trading efficiency studies."
+        
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_ohlc_prices" "Materialized view of OHLC price data with time-series optimization for high-performance charting and technical analysis across Solana protocols. Pre-computed aggregations for fast price visualization and market research."
 
         echo "Processing $SOLANA_TOKENS_VERSION tables..."
         
