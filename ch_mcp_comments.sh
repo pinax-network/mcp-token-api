@@ -245,6 +245,8 @@ for network in "${NETWORKS[@]}"; do
         echo "Processing $SOLANA_DEX_VERSION tables..."
         
         # Core DEX Tables
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "blocks" "Solana block metadata with timestamp and hash information for chronological analysis and block-based queries. Essential reference data for temporal aggregations and cross-table block correlations in DEX analysis."
+
         execute_alter "$network" "$SOLANA_DEX_VERSION" "mints" "Solana token mint registry with program associations and decimal precision data. Foundation for SPL token identification, metadata resolution, and cross-program token compatibility analysis."
         
         execute_alter "$network" "$SOLANA_DEX_VERSION" "swaps" "Unified Solana DEX swap events across all major protocols with standardized token amounts and pricing data. Primary dataset for cross-protocol trading analysis, arbitrage detection, and Solana DeFi ecosystem research."
@@ -260,10 +262,34 @@ for network in "${NETWORKS[@]}"; do
         
         execute_alter "$network" "$SOLANA_DEX_VERSION" "raydium_amm_v4_withdraw_pnl" "Raydium AMM V4 profit and loss withdrawal events tracking LP rewards and fee distributions. Essential for liquidity provider profitability analysis and yield farming strategy research."
         
+        # Materialized Views for Performance
+        execute_alter "$network" "$SOLANA_DEX_VERSION" "mv_raydium_amm_v4_swap" "Materialized view of Raydium AMM V4 swaps normalized to unified swap format with standardized token ordering and pricing. Pre-computed aggregations for efficient cross-protocol DEX analysis and trading pattern research."
+
         echo "Processing $SOLANA_TOKENS_VERSION tables..."
         
-        # Note: Solana tokens tables would be added here when they become available
-        # execute_alter "$network" "$SOLANA_TOKENS_VERSION" "table_name" "Description..."
+        # Core Token Tables
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "approves" "SPL token approval events granting delegate permissions with multisig authority support on Solana. Essential for analyzing token delegation patterns, DeFi protocol integrations, and multisig governance mechanisms."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balance_changes" "Atomic SPL token balance change events with precise delta tracking for all token movements on Solana. Foundation for real-time balance calculations, high-frequency trading analysis, and token flow pattern detection."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balances" "Current SPL token balances snapshot for all token holders with owner-mint mapping on Solana. Real-time view of token holdings optimized for portfolio analysis and wealth distribution research."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "balances_by_mint" "Current SPL token balances organized by mint address with holder statistics on Solana. Optimized for token-centric analysis, holder distribution studies, and mint-specific economic research."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "blocks" "Solana block metadata with timestamp normalization and genesis-relative timing for chronological analysis. Essential reference data for temporal queries and block-based aggregations."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "initialize_accounts" "SPL token account initialization events tracking new token account creation and ownership assignment on Solana. Critical for analyzing token adoption patterns and account lifecycle management."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "initialize_mints" "SPL token mint initialization events capturing new token deployments with authority configuration on Solana. Foundation for token genesis analysis, authority tracking, and ecosystem growth studies."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "revokes" "SPL token delegation revocation events removing previously granted delegate permissions on Solana. Important for analyzing security practices, permission management, and token control patterns."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "transfers" "Complete SPL token transfer events with multisig authority support and comprehensive transaction context on Solana. Primary dataset for token flow analysis, trading pattern detection, and economic activity measurement."
+        
+        # Materialized Views for Performance
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "mv_balances" "Materialized view of current SPL token balances with optimized indexing for high-performance wallet queries on Solana. Pre-computed aggregations for fast portfolio tracking and real-time balance lookups."
+        
+        execute_alter "$network" "$SOLANA_TOKENS_VERSION" "mv_balances_by_mint" "Materialized view of balances organized by mint with enhanced query performance for token-centric analysis on Solana. Optimized for mint-specific holder research and token distribution studies."
     fi
     
     # =============================================
