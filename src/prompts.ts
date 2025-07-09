@@ -11,6 +11,7 @@ The databases are currently segregated into three main themes:
     - Tokens: tables for ERC20 balances, holders, historical data, transfers, etc.
     - NFT: tables for ERC721 and ERC1155 standards as well as other NFT types, transfers, Seaport marketplace prices, holders, wallet, etc.
     - Uniswap: tables for ERC20 token prices, swaps, market data, etc.
+You can assume that the databases contain the whole blockchain history.
 
 In order to discover the data, the MCP provides 4 main tools:
     1. 'list_databases': use this to discover which networks and databases are available.
