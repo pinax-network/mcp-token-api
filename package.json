@@ -1,7 +1,7 @@
 {
   "name": "mcp-token-api",
   "module": "index.ts",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "MCP server for The Graph Token API",
   "type": "module",
   "private": true,
