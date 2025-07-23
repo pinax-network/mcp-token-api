@@ -5,6 +5,7 @@ import { logger } from "./src/logger.js";
 import tools from "./src/tools.js";
 import prompts from "./src/prompts.js";
 import { resources, resourceTemplates } from "./src/resources.js";
+import { startMetricsServer } from "./src/metrics.js";
 
 const mcp = new FastMCP({
     name: APP_VERSION,
@@ -32,6 +33,10 @@ resourceTemplates.map((resourceTemplate) => mcp.addResourceTemplate(resourceTemp
 resources.map((resource) => mcp.addResource(resource));
 prompts.map((prompt) => mcp.addPrompt(prompt));
 
+// Start metrics server on configured port
+startMetricsServer(config.metricsPort);
+
+// Start MCP server
 await mcp.start({
     transportType: "httpStream",
     httpStream: {

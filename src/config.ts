@@ -7,6 +7,7 @@ import pkg from "../package.json" with { type: "json" };
 
 // defaults
 export const DEFAULT_PORT = "8080";
+export const DEFAULT_METRICS_PORT = "9090";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_URL = "http://localhost:8123";
 export const DEFAULT_DATABASE = "default";
@@ -36,6 +37,7 @@ const opts = program
     .description(APP_DESCRIPTION)
     .showHelpAfterError()
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the MCP SSE server").env("PORT").default(DEFAULT_PORT))
+    .addOption(new Option("--metrics-port <number>", "HTTP port for Prometheus metrics endpoint").env("METRICS_PORT").default(DEFAULT_METRICS_PORT))
     .addOption(new Option("--url <string>", "Database HTTP hostname").env("URL").default(DEFAULT_URL))
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
@@ -47,6 +49,7 @@ const opts = program
 
 let config = z.object({
     port: z.coerce.number(),
+    metricsPort: z.coerce.number(),
     url: z.string(),
     database: z.string(),
     username: z.string(),
