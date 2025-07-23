@@ -36,6 +36,7 @@ const opts = program
     .version(APP_VERSION)
     .description(APP_DESCRIPTION)
     .showHelpAfterError()
+    .addOption(new Option("-h, --hostname <string>", "HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the MCP SSE server").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--metrics-port <number>", "HTTP port for Prometheus metrics endpoint").env("METRICS_PORT").default(DEFAULT_METRICS_PORT))
     .addOption(new Option("--url <string>", "Database HTTP hostname").env("URL").default(DEFAULT_URL))
@@ -48,6 +49,7 @@ const opts = program
     .opts();
 
 let config = z.object({
+    hostname: z.string(),
     port: z.coerce.number(),
     metricsPort: z.coerce.number(),
     url: z.string(),

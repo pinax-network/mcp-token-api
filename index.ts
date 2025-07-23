@@ -34,7 +34,7 @@ resources.map((resource) => mcp.addResource(resource));
 prompts.map((prompt) => mcp.addPrompt(prompt));
 
 // Start metrics server on configured port
-startMetricsServer(config.metricsPort);
+startMetricsServer(config.hostname, config.metricsPort);
 
 // Start MCP server
 await mcp.start({

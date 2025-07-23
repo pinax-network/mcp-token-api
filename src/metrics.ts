@@ -50,8 +50,9 @@ export async function getMetrics(): Promise<string> {
 }
 
 // Start metrics server using Bun
-export function startMetricsServer(port: number = 9090) {
+export function startMetricsServer(hostname: string = "0.0.0.0", port: number = 9090) {
   const server = Bun.serve({
+    hostname,
     port,
     async fetch(req) {
       const url = new URL(req.url);
